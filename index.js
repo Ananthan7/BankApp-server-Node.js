@@ -45,7 +45,8 @@ const authMiddleware = (req,res,next)=>{
 // register API
 //POST - register
 app.post('/register',(req,res)=>{
-    dataService.register(req.body.acno,req.body.username, req.body.password)
+
+    dataService.register(req.body.acno,req.body.username,req.body.password)
     .then(result=>{
       res.status(result.statusCode).json(result)
      })
@@ -53,22 +54,21 @@ app.post('/register',(req,res)=>{
 });
   
   
-  //POST - login
-  app.post('/login',(req,res)=>{
-     
-        dataService.login(req,req.body.acno,req.body.password)
-        .then(result=>{
-          res.status(result.statusCode).json(result)
-         })
-        
-      });
+//POST - login
+app.post('/login',(req,res)=>{
+    
+    dataService.login(req,req.body.acno,req.body.password)
+    .then(result=>{
+        res.status(result.statusCode).json(result)
+        })
+    });
 
 
 //  POST deposit
 app.post('/deposit', authMiddleware, (req,res)=>{
     console.log(req.session.currentUser);
 
-    dataService.deposit(req.body.acno,req.body.pswd,req.body.amt)
+    dataService.deposit(req.body.acno,req.body.password,req.body.amount)
     .then(result=>{
         res.status(result.statusCode).json(result)
     })
@@ -76,8 +76,10 @@ app.post('/deposit', authMiddleware, (req,res)=>{
 
 // POST withdraw
 app.post('/withdraw',authMiddleware, (req,res)=>{
-    const result = dataService.withdraw(req.body.acno, req.body.pswd, req.body.amt)
-    res.status(result.statusCode).json(result);
+    dataService.withdraw(req.body.acno, req.body.password, req.body.amount)
+    .then(result=>{
+        res.status(result.statusCode).json(result);
+    })
 });
 
 app.put('/',(req,res)=>{
