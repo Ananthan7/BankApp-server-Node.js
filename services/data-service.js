@@ -26,7 +26,7 @@ const register = (acno,username,password)=>{
         acno,
         username:username,
         password:password,
-        balance:0
+        balance:0,
       })
       newUser.save();
       return {
@@ -39,19 +39,20 @@ const register = (acno,username,password)=>{
 }
   
 // login
-const login = (req,accno,password) =>{
+const login = (req,acno,password) =>{
   
-  var acno = parseInt(accno);
+  var acno = parseInt(acno);
   
   return db.User.findOne({acno,password})
   .then(user=>{
   
     if(user){
-      req.session.currentUser = user;
+      req.session.currentUser = user.acno;
       return {
         statusCode:200,
         status:  true,
-        message: "Succesfully log in"
+        message: "Succesfully log in",
+        name: user.username
       }
     }
     else{
@@ -65,19 +66,26 @@ const login = (req,accno,password) =>{
 }
 
   
-const deposit = (acno,password,amt) =>{
-  
+const deposit = (req,acno,password,amt) =>{
   var amount = parseInt(amt);
   return db.User.findOne({acno,password})
   .then(user=>{
   
-    if(!user){
-      return {
+      if(!user){
+        return {
           statusCode:422,
           status:  false,
-          message: "invalid user"
+          message: "invalid Credentials"
         }
       }
+      if(req.session.currentUser != acno){
+        return{
+          statusCode:422,
+          status:  false,
+          message: "Permission denied due to unautherised access"
+        }
+      }
+
       user.balance+=amount;
       user.save();
       return {
@@ -90,7 +98,7 @@ const deposit = (acno,password,amt) =>{
 }
 
 
-const withdraw = (acno,password,amt) =>{
+const withdraw = (req,acno,password,amt) =>{
 
   var amount = parseInt(amt);
 
@@ -100,8 +108,15 @@ const withdraw = (acno,password,amt) =>{
       return {
         statusCode:422,
           status:  false,
-          message: "Invalid user"
+          message: "Invalid credentials"
         }
+    }
+    if(req.session.currentUser != acno){
+      return{
+        statusCode:422,
+        status:  false,
+        message: "Permission denied due to unautherised access"
+      }
     }
 
    if(user.balance<amount){
@@ -123,58 +138,6 @@ const withdraw = (acno,password,amt) =>{
 
 }
   
-// const register = (uname, accno, pswd) => {
-//     let user = accountDetails;
-
-//     if (accno in user) {
-//         return {
-//             statusCode: 422,
-//             status: false,
-//             message: "user already exists"
-//         }
-//     } else {
-//         user[accno] = {
-//             acno: accno,
-//             username: uname,
-//             password: pswd,
-//             balance: 0,
-//         }
-//         return {
-//             statusCode: 200,
-//             status: true,
-//             message: "successfully registered"
-//         }
-//     };
-// };
-
-// const login = (req,acno, pswd) => {
-//     let user = accountDetails;
-//     if (acno in user) {
-//       if (pswd == user[acno]['password']) {
-//         req.session.currentUser= user[acno];
-//         return {
-//             statusCode: 200,
-//             status: true,
-//             message: "successfully login"
-//         }
-//       }
-//       else {
-//         return  {
-//             statusCode: 422,
-//             status: false,
-//             message: "invalid password"
-//         }
-//       }
-//     }
-//     else {
-//       return  {
-//         statusCode: 422,
-//         status: false,
-//         message: "invalid accno"
-//     }
-//     }
-//   }
-
 // const deposit=(acno, pswd, amt) => {
 //   if(!req.session.currentUser){
 //     return {

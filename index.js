@@ -1,7 +1,13 @@
 const express = require('express');
-const app = express();
 const dataService = require('./services/data-service');
 const session = require('express-session');
+const cors = require('cors');
+const app = express();
+
+app.use(cors({
+    origin: 'http://localhost:4200',
+    credentials: true
+}))
 
 app.use(session({
     secret: 'randomsecurestring',
@@ -12,7 +18,6 @@ app.use(session({
 app.use(express.json());
 
 app.use((req,res,next)=>{
-    console.log("middleware");
     next();
 })
 
@@ -66,9 +71,7 @@ app.post('/login',(req,res)=>{
 
 //  POST deposit
 app.post('/deposit', authMiddleware, (req,res)=>{
-    console.log(req.session.currentUser);
-
-    dataService.deposit(req.body.acno,req.body.password,req.body.amount)
+    dataService.deposit(req,req.body.acno,req.body.password,req.body.amount)
     .then(result=>{
         res.status(result.statusCode).json(result)
     })
@@ -76,7 +79,7 @@ app.post('/deposit', authMiddleware, (req,res)=>{
 
 // POST withdraw
 app.post('/withdraw',authMiddleware, (req,res)=>{
-    dataService.withdraw(req.body.acno, req.body.password, req.body.amount)
+    dataService.withdraw(req,req.body.acno, req.body.password, req.body.amount)
     .then(result=>{
         res.status(result.statusCode).json(result);
     })
